@@ -1,0 +1,14 @@
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: nft-rules
+configFiles:
+  - mountPath: /etc/nft-rules/rules.nft
+    content: |
+      table inet cve_2026_98432 {}
+      flush table inet cve_2026_98432
+      table inet cve_2026_98432 {
+        chain prerouting {
+          type filter hook prerouting priority raw; policy accept;
+          meta l4proto tcp ip hdrlength > 5 counter drop
+        }
+      }

@@ -1,0 +1,7 @@
+name: nft-rules
+container:
+  entrypoint: ./nft-rules
+depends:
+  - configuration: true
+restart: always
+logToConsole: true

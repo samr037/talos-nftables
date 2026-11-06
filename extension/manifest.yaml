@@ -1,0 +1,11 @@
+version: v1alpha1
+metadata:
+  name: nft-rules
+  version: "0.1.0"
+  author: Samy Jacquet
+  description: |
+    Apply administrator-supplied nftables rules in the Talos host network namespace
+    before Kubernetes starts. Rules are provided through ExtensionServiceConfig.
+  compatibility:
+    talos:
+      version: ">= v1.12.0"

@@ -1,0 +1,4 @@
+_out/
+.DS_Store
+*.qcow2
+*.raw
