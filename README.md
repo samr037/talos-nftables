@@ -1,5 +1,7 @@
 # talos-nftables
 
+[![CI](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml/badge.svg)](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml)
+
 **Advanced nftables rules for the Talos host network, loaded before Kubernetes.**
 
 Talos already has an [ingress firewall](https://docs.siderolabs.com/talos/v1.13/networking/ingress-firewall) for host ports and source subnets. This extension serves a narrower purpose: native nftables rules that need packet header matches, raw-priority hooks, sets, counters, or other expressions outside that interface.
