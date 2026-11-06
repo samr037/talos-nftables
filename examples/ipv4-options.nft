@@ -1,8 +1,8 @@
 # This drops IPv4 TCP packets whose IPv4 header contains options.
-# Replace the example name with the identifier of the mitigation you deploy.
-table inet cve_2026_98432 {}
-flush table inet cve_2026_98432
-table inet cve_2026_98432 {
+# Use a table name reserved for this extension when adapting the example.
+table inet talos_nftables_demo {}
+flush table inet talos_nftables_demo
+table inet talos_nftables_demo {
   chain prerouting {
     type filter hook prerouting priority raw; policy accept;
     meta l4proto tcp ip hdrlength > 5 counter drop

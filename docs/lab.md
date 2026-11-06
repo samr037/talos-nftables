@@ -21,7 +21,7 @@ In a second terminal:
 ./lab/check.sh
 ```
 
-The check script builds a local debug image, imports it with `talosctl debug`, shows `table inet cve_2026_98432`, sends a 44-byte IPv4 TCP SYN with four NOP IP option bytes, and shows the table again. The sample rule's `ip hdrlength > 5` counter should rise by one. The debug image and packet generator are lab tools only; the published extension image contains neither.
+The check script builds a local debug image, imports it with `talosctl debug`, shows `table inet talos_nftables_demo`, sends a 44-byte IPv4 TCP SYN with four NOP IP option bytes, and shows the table again. The sample rule's `ip hdrlength > 5` counter should rise by one. The debug image and packet generator are lab tools only; the published extension image contains neither.
 
 ## Recorded result, 2026-11-06
 
@@ -36,3 +36,13 @@ The check script builds a local debug image, imports it with `talosctl debug`, s
 | Restore example config | Service returned to Running; temporary port rule disappeared. |
 
 The final VM config was restored to the example rule. The lab did not bootstrap Kubernetes, because the firewall is intended to work before Kubernetes is ready.
+
+The generic example was rebuilt and checked again on 2026-11-06. The live `./lab/check.sh` output included:
+
+```text
+STATE    Running
+meta l4proto tcp ip hdrlength > 5 counter packets 0 bytes 0 drop
+sent 44-byte IPv4 TCP packet with IHL=6 to 10.0.2.15
+meta l4proto tcp ip hdrlength > 5 counter packets 1 bytes 44 drop
+PASS: IPv4 options counter increased (0 -> 1)
+```

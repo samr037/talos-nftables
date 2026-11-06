@@ -20,7 +20,7 @@ talos service ext-nft-rules
 talos logs ext-nft-rules
 echo "Rules before probe:"
 before_output=$(talos debug "$debug_tar" \
-  --args /usr/sbin/nft,list,table,inet,cve_2026_98432)
+  --args /usr/sbin/nft,list,table,inet,talos_nftables_demo)
 printf '%s\n' "$before_output"
 before=$(printf '%s\n' "$before_output" | awk '/meta l4proto tcp ip hdrlength > 5/ { for (i=1; i<=NF; i++) if ($i == "packets") { print $(i+1); exit } }')
 echo "Sending IPv4 TCP packet with IP options:"
@@ -28,7 +28,7 @@ talos debug "$debug_tar" \
   --args /ip-options-probe,10.0.2.15
 echo "Rules after probe (first counter should increase):"
 after_output=$(talos debug "$debug_tar" \
-  --args /usr/sbin/nft,list,table,inet,cve_2026_98432)
+  --args /usr/sbin/nft,list,table,inet,talos_nftables_demo)
 printf '%s\n' "$after_output"
 after=$(printf '%s\n' "$after_output" | awk '/meta l4proto tcp ip hdrlength > 5/ { for (i=1; i<=NF; i++) if ($i == "packets") { print $(i+1); exit } }')
 if ! [[ "$before" =~ ^[0-9]+$ && "$after" =~ ^[0-9]+$ ]] || (( after <= before )); then

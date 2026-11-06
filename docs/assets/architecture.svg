@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" role="img" aria-labelledby="title description">
+  <title id="title">talos-nftables architecture</title>
+  <desc id="description">Talos machine configuration provides a rules file to the extension service. The service validates and applies the file to a dedicated kernel nftables table. Inbound packets pass through the kernel hook, without passing through the service.</desc>
+  <defs>
+    <linearGradient id="background" x2="1" y2="1">
+      <stop stop-color="#111827"/>
+      <stop offset="1" stop-color="#172033"/>
+    </linearGradient>
+    <linearGradient id="accent" x2="1" y2="0">
+      <stop stop-color="#F77216"/>
+      <stop offset="1" stop-color="#E2335A"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0 8 4 0 8Z" fill="#FB923C"/>
+    </marker>
+    <marker id="arrowMuted" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0 8 4 0 8Z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="500" rx="24" fill="url(#background)"/>
+  <rect x="36" y="36" width="5" height="25" rx="2.5" fill="url(#accent)"/>
+  <text x="54" y="56" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="22" font-weight="700">From configuration to kernel enforcement</text>
+  <text x="1162" y="54" fill="#94A3B8" text-anchor="end" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" letter-spacing="2">TALOS LINUX</text>
+
+  <rect x="36" y="92" width="320" height="180" rx="17" fill="#222D40" stroke="#40506A"/>
+  <rect x="36" y="92" width="320" height="5" rx="2" fill="#64748B"/>
+  <text x="60" y="127" fill="#93A4BB" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1.4">01  DECLARE</text>
+  <text x="60" y="165" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="23" font-weight="700">Talos machine config</text>
+  <text x="60" y="194" fill="#CBD5E1" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16">ExtensionServiceConfig</text>
+  <rect x="60" y="212" width="156" height="33" rx="6" fill="#334155"/>
+  <text x="73" y="234" fill="#E2E8F0" font-family="SFMono-Regular, Consolas, monospace" font-size="15">rules.nft</text>
+
+  <line x1="360" y1="181" x2="416" y2="181" stroke="#FB923C" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="425" y="92" width="350" height="180" rx="17" fill="#2D2934" stroke="#A64B34"/>
+  <rect x="425" y="92" width="350" height="5" rx="2" fill="url(#accent)"/>
+  <text x="449" y="127" fill="#FDAA71" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1.4">02  VALIDATE + APPLY</text>
+  <text x="449" y="165" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="23" font-weight="700">Talos extension service</text>
+  <text x="449" y="194" fill="#E2C9C1" font-family="SFMono-Regular, Consolas, monospace" font-size="15">nft -c -f -  →  nft -f -</text>
+  <text x="449" y="230" fill="#CBD5E1" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14">Watches file changes · logs errors</text>
+
+  <line x1="779" y1="181" x2="835" y2="181" stroke="#FB923C" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <rect x="844" y="92" width="320" height="180" rx="17" fill="#222D40" stroke="#40506A"/>
+  <rect x="844" y="92" width="320" height="5" rx="2" fill="#64748B"/>
+  <text x="868" y="127" fill="#93A4BB" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1.4">03  ENFORCE</text>
+  <text x="868" y="165" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="23" font-weight="700">Linux kernel</text>
+  <text x="868" y="194" fill="#CBD5E1" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="16">Dedicated nftables table</text>
+  <rect x="868" y="212" width="232" height="33" rx="6" fill="#334155"/>
+  <text x="881" y="234" fill="#E2E8F0" font-family="SFMono-Regular, Consolas, monospace" font-size="14">host network namespace</text>
+
+  <line x1="36" y1="306" x2="1164" y2="306" stroke="#334155"/>
+  <text x="36" y="334" fill="#93A4BB" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">PACKET PATH</text>
+
+  <rect x="36" y="358" width="234" height="78" rx="12" fill="#263246" stroke="#52627A"/>
+  <text x="59" y="389" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="700">Inbound packet</text>
+  <text x="59" y="413" fill="#CBD5E1" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14">Host interface</text>
+  <line x1="273" y1="397" x2="480" y2="397" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowMuted)"/>
+
+  <rect x="490" y="348" width="322" height="98" rx="14" fill="#352B33" stroke="#F77216" stroke-width="2"/>
+  <text x="514" y="383" fill="#FDAA71" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13" font-weight="700" letter-spacing="1">KERNEL HOOK</text>
+  <text x="514" y="414" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="20" font-weight="700">match → accept / drop</text>
+  <line x1="815" y1="397" x2="944" y2="397" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrowMuted)"/>
+
+  <rect x="954" y="358" width="210" height="78" rx="12" fill="#263246" stroke="#52627A"/>
+  <text x="977" y="389" fill="#F8FAFC" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="18" font-weight="700">Node traffic</text>
+  <text x="977" y="413" fill="#CBD5E1" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="14">If accepted</text>
+
+  <text x="600" y="479" fill="#94A3B8" text-anchor="middle" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="13">The loader configures the firewall; packets are handled by the kernel.</text>
+</svg>

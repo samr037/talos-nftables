@@ -1,40 +1,38 @@
-# talos-nftables
+<p align="center"><a href="https://www.siderolabs.com/talos-linux"><img src="https://raw.githubusercontent.com/siderolabs/docs/main/public/images/talos.svg" alt="Talos Linux logo" width="88" height="88"></a></p>
+<h1 align="center">talos-nftables</h1>
+<p align="center"><strong>Native nftables policy for Talos Linux hosts, independent of Kubernetes.</strong></p>
+<p align="center">
+  <a href="https://github.com/samr037/talos-nftables/actions/workflows/ci.yml"><img src="https://github.com/samr037/talos-nftables/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/samr037/talos-nftables/releases"><img src="https://img.shields.io/github/v/release/samr037/talos-nftables?color=f77216" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-334155" alt="MIT license"></a>
+</p>
+<p align="center"><a href="#how-it-works">How it works</a> · <a href="#try-the-lab">Try the lab</a> · <a href="#test-results">Test results</a> · <a href="#deploy">Deploy</a></p>
 
-[![CI](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml/badge.svg)](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml)
+---
 
-**Advanced nftables rules for the Talos host network, loaded before Kubernetes.**
+Talos has a [native ingress firewall](https://docs.siderolabs.com/talos/v1.13/networking/ingress-firewall) for ordinary host access rules. This community extension adds the full nftables language when a policy needs raw-priority hooks, packet-header expressions, sets, rate limits, NAT, or counters. It loads a rules file from Talos machine configuration into the host network namespace.
 
-Talos already has an [ingress firewall](https://docs.siderolabs.com/talos/v1.13/networking/ingress-firewall) for host ports and source subnets. This extension serves a narrower purpose: native nftables rules that need packet header matches, raw-priority hooks, sets, counters, or other expressions outside that interface.
+> [!IMPORTANT]
+> The rules file is trusted administrator input with host firewall privileges. Give this extension its own nftables table. Never use `flush ruleset`, which would also remove rules owned by Talos and other networking components.
 
-```text
-Talos machine config                  Talos boot image
-└─ ExtensionServiceConfig             └─ nft-rules system extension
-   └─ rules.nft                           ├─ ext-nft-rules service
-                                         ├─ small Go rule loader
-                                         └─ nft + libraries
-                                                │
-                                    check → atomic nft batch
-                                                │
-                                    host network namespace
-```
+## How it works
 
-## What it does
+![Architecture: Talos machine configuration supplies an nftables file to the extension service; the service checks and applies it to a dedicated kernel table. Packets traverse the kernel hook without passing through the service.](docs/assets/architecture.svg)
 
-- Loads one administrator-supplied `.nft` file from `ExtensionServiceConfig.configFiles`.
-- Runs `nft -c -f -` before `nft -f -`, using the same bytes for both commands.
-- Applies changes when the file changes. Talos also restarts the extension service when its config document changes.
-- Logs the first 8 bytes of the applied SHA-256 hash and nft diagnostics through `talosctl logs ext-nft-rules`.
-- Runs as a Talos extension service, without depending on kubelet, the Kubernetes API, or CNI readiness.
+1. A custom Talos boot image carries the extension service, `nft`, and its libraries.
+2. `ExtensionServiceConfig` mounts your policy as `/etc/nft-rules/rules.nft`.
+3. The service validates the exact file with `nft -c -f -`, then applies it with `nft -f -`. It watches for changes and logs diagnostics through `talosctl logs ext-nft-rules`.
+4. The kernel enforces the rules. The loader is never in the packet path.
 
-The example owns only `table inet cve_2026_98432`. **Never put `flush ruleset` in a rules file**: this extension executes trusted administrator input with host firewall privileges. See [design and safety](docs/design.md).
+Rules are restored after reboot when the service starts. A syntax error during an update leaves the previously installed table active. [Design and safety details →](docs/design.md)
 
-## Quick lab on an Apple Silicon Mac
+## Try the lab
 
-Requires Docker Desktop, QEMU, `talosctl`, `zstd`, Go, and Python 3. The lab builds a 2 GiB RAM / 2 vCPU Talos v1.13.3 ARM64 VM with a sparse 10 GiB disk. Docker uses a registry bound to `127.0.0.1:5005`; QEMU forwards the Talos API to `127.0.0.1:15000`.
+The reproducible lab boots Talos v1.13.3 ARM64 in a small QEMU VM on Apple Silicon: **2 vCPU, 2 GiB RAM, sparse 10 GiB disk**. It needs Docker, QEMU, `talosctl`, `zstd`, Go, and Python 3. Generated credentials and disks stay in ignored `_out/`.
 
 ```bash
 ./lab/build.sh
-./lab/run.sh                 # leave this terminal running
+./lab/run.sh       # keep this terminal open
 ```
 
 In another terminal:
@@ -43,62 +41,43 @@ In another terminal:
 ./lab/check.sh
 ```
 
-`check.sh` prints the nftables table, sends one crafted IPv4 TCP packet with IP options inside the guest, and prints the table again. The `ip hdrlength > 5` counter should increase. The virtual RNG in `run.sh` is essential for Talos to finish booting in this QEMU setup. Generated machine credentials and disks stay in ignored `_out/`.
+The lab policy in [examples/ipv4-options.nft](examples/ipv4-options.nft) drops IPv4 TCP packets with IP options. `check.sh` sends one crafted packet and asserts that the rule's drop counter increases. This is a **test policy**, not a recommended default firewall. [Full lab guide →](docs/lab.md)
 
-Full reproduction steps and the test record are in [the lab guide](docs/lab.md).
+## Test results
 
-## Use on a Talos node
+| Check | How to reproduce | Observed result |
+| :--- | :--- | :--- |
+| Loader unit tests | `make test` | Validation precedes application; invalid input preserves the last applied policy. |
+| Static analysis and both image architectures | [GitHub Actions CI](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml) | `go vet` and AMD64/ARM64 image builds pass. |
+| Real Talos boot and restart | `./lab/build.sh`, `./lab/run.sh`, then `./lab/check.sh` | Extension service starts before Kubernetes readiness and restores its table after reboot. |
+| Packet match | `./lab/check.sh` | Crafted IPv4 TCP packet with an IP option matched the raw-prerouting rule; drop counter increased. |
+| Bad rule update | [Lab test record](docs/lab.md#recorded-result-2026-11-06) | `nft -c` rejected invalid syntax; the previous kernel table remained active. |
 
-1. Build and publish the extension OCI image:
+Packet test excerpt from the Talos VM:
 
-   ```bash
-   make test
-   make image-push IMAGE=ghcr.io/YOUR_USER/talos-nftables VERSION=v0.1.0
-   ```
-
-2. Use [Talos imager](https://docs.siderolabs.com/talos/v1.13/platform-specific-installations/boot-assets#imager) to include that image in a custom Talos installer or boot asset. The public Image Factory accepts official extensions only; it cannot add this custom one. System extensions take effect during Talos install or upgrade, not through a machine config edit alone.
-
-3. Add [examples/extension-service-config.yaml](examples/extension-service-config.yaml) as an extra document in each target node's Talos machine configuration. Change the table name and rule body for your policy, then apply the machine config. The service waits for this document before starting.
-
-4. Verify on the node:
-
-   ```bash
-   talosctl -n NODE get extensions
-   talosctl -n NODE service ext-nft-rules
-   talosctl -n NODE logs ext-nft-rules
-   ```
-
-For an exact installer build and rollout sequence, see [deployment](docs/deployment.md). For updating rules and recovering from errors, see [operations](docs/operations.md).
-
-## The supplied rule
-
-```nft
-table inet cve_2026_98432 {}
-flush table inet cve_2026_98432
-table inet cve_2026_98432 {
-  chain prerouting {
-    type filter hook prerouting priority raw; policy accept;
-    meta l4proto tcp ip hdrlength > 5 counter drop
-  }
-}
+```text
+meta l4proto tcp ip hdrlength > 5 counter packets 0 bytes 0 drop
+sent 44-byte IPv4 TCP packet with IHL=6 to 10.0.2.15
+meta l4proto tcp ip hdrlength > 5 counter packets 1 bytes 44 drop
+PASS: IPv4 options counter increased (0 -> 1)
 ```
 
-`ip hdrlength > 5` matches IPv4 headers with options. For TCP header options, the relevant field is `tcp doff`. `prerouting` can see traffic routed through the node as well as traffic to its host services; choose an additional interface, address, or port match if the mitigation should be narrower. See the [nftables field reference](https://wiki.nftables.org/wiki-nftables/index.php/Quick_reference-nftables_in_10_minutes).
+The VM and packet tests were run on **ARM64 Talos v1.13.3**. The AMD64 image builds in CI; an AMD64 Talos VM has not yet been exercised.
 
-## Project status
+## Deploy
 
-| Check | Result |
-|---|---|
-| Go unit tests and vet | Passed |
-| ARM64 extension build | Passed |
-| AMD64 extension build | Passed |
-| Talos v1.13.3 ARM64 VM boot | Passed |
-| Extension starts before Kubernetes readiness | Passed |
-| Rules present after reboot | Passed |
-| Crafted IPv4 TCP packet with IHL 6 | Matched and dropped; counter rose from 0 to 1 |
-| Invalid nft syntax | Rejected; previous kernel table stayed active |
-| AMD64 runtime VM | Not yet exercised |
+Use the published image `ghcr.io/samr037/talos-nftables:v0.1.1`, or build your own with `make image-push`. Custom extensions must be included in a Talos boot asset or installer using [Talos imager](https://docs.siderolabs.com/talos/v1.13/platform-specific-installations/boot-assets#imager); adding a machine config document alone cannot install an extension. The public Image Factory supports official extensions only.
 
-## License
+Add [examples/extension-service-config.yaml](examples/extension-service-config.yaml) to the machine configuration and replace its demonstration policy with your own table and rules. Then verify:
 
-MIT. See [LICENSE](LICENSE).
+```bash
+talosctl -n NODE get extensions
+talosctl -n NODE service ext-nft-rules
+talosctl -n NODE logs ext-nft-rules
+```
+
+[Installer build and rollout →](docs/deployment.md) · [Updating rules and recovery →](docs/operations.md)
+
+## Project
+
+This is an independent community project, not an official Sidero Labs extension. The Talos Linux logo belongs to Sidero Labs and is loaded from its [official documentation repository](https://github.com/siderolabs/docs/blob/main/public/images/talos.svg) for identification. Code is MIT licensed; see [LICENSE](LICENSE).

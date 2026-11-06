@@ -1,5 +1,5 @@
 IMAGE ?= ghcr.io/samr037/talos-nftables
-VERSION ?= v0.1.0
+VERSION ?= v0.1.1
 TALOS_VERSION ?= v1.13.3
 
 .PHONY: test build image-local image-push clean
