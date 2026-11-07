@@ -2,6 +2,8 @@
 
 The lab runs entirely on an Apple Silicon laptop. It does not connect to or modify a Proxmox cluster. QEMU user networking gives the guest `10.0.2.15`; host ports `15000` and `15123` forward to guest ports `50000` and `12345`.
 
+For the separately tested AMD64 VM, see [the Proxmox lab guide](lab-amd64.md).
+
 ## Build and boot
 
 ```bash

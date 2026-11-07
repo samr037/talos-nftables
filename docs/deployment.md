@@ -40,7 +40,7 @@ docker tag ghcr.io/siderolabs/installer-base:v1.13.3 \
 docker push ghcr.io/YOUR_USER/talos-installer:v1.13.3-nft0.1.1
 ```
 
-Talos imager writes the custom archive with the `installer-base` image tag; retag the **just-loaded** image before pushing it. Do not push to the `siderolabs` namespace. An ARM64 version was built and loaded in the lab; the AMD64 installer recipe has not yet been run on a Talos VM.
+Talos imager writes the custom archive with the `installer-base` image tag; retag the **just-loaded** image before pushing it. Do not push to the `siderolabs` namespace. The ARM64 and AMD64 **metal boot images** have been tested in VMs; the AMD64 installer archive command above has not been exercised.
 
 For a new installation, set `machine.install.image` in the machine config to your custom installer before applying it. For an existing node, use `talosctl upgrade --image ghcr.io/YOUR_USER/talos-installer:v1.13.3-nft0.1.1` with your normal Talos upgrade procedure. Include any other system extensions already used by that node when building the installer; the new image defines the complete extension set.
 

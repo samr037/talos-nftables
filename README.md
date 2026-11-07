@@ -41,7 +41,7 @@ In another terminal:
 ./lab/check.sh
 ```
 
-The lab policy in [examples/ipv4-options.nft](examples/ipv4-options.nft) drops IPv4 TCP packets with IP options. `check.sh` sends one crafted packet and asserts that the rule's drop counter increases. This is a **test policy**, not a recommended default firewall. [Full lab guide →](docs/lab.md)
+The lab policy in [examples/ipv4-options.nft](examples/ipv4-options.nft) drops IPv4 TCP packets with IP options. `check.sh` sends one crafted packet and asserts that the rule's drop counter increases. This is a **test policy**, not a recommended default firewall. [Apple Silicon lab guide →](docs/lab.md) · [AMD64 Proxmox lab guide →](docs/lab-amd64.md)
 
 ## Test results
 
@@ -49,9 +49,10 @@ The lab policy in [examples/ipv4-options.nft](examples/ipv4-options.nft) drops I
 | :--- | :--- | :--- |
 | Loader unit tests | `make test` | Validation precedes application; invalid input preserves the last applied policy. |
 | Static analysis and both image architectures | [GitHub Actions CI](https://github.com/samr037/talos-nftables/actions/workflows/ci.yml) | `go vet` and AMD64/ARM64 image builds pass. |
-| Real Talos boot and restart | `./lab/build.sh`, `./lab/run.sh`, then `./lab/check.sh` | Extension service starts before Kubernetes readiness and restores its table after reboot. |
-| Packet match | `./lab/check.sh` | Crafted IPv4 TCP packet with an IP option matched the raw-prerouting rule; drop counter increased. |
-| Bad rule update | [Lab test record](docs/lab.md#recorded-result-2026-11-06) | `nft -c` rejected invalid syntax; the previous kernel table remained active. |
+| ARM64 Talos VM | `./lab/build.sh`, `./lab/run.sh`, then `./lab/check.sh` | Extension service starts before Kubernetes readiness; the table returns after reboot. |
+| AMD64 Talos VM | [Proxmox lab](docs/lab-amd64.md) | Published v0.1.1 image boots; the rule loads and returns after reboot. |
+| Packet match | `./lab/check.sh` on both architectures | A crafted 44-byte IPv4 TCP packet with an IP option raised the drop counter from 0 to 1. |
+| Bad rule update | [ARM64](docs/lab.md#recorded-result-2026-11-06) and [AMD64](docs/lab-amd64.md#recorded-result-2026-11-07) test records | `nft -c` rejected invalid syntax; the previous kernel table remained active. |
 
 Packet test excerpt from the Talos VM:
 
@@ -62,7 +63,7 @@ meta l4proto tcp ip hdrlength > 5 counter packets 1 bytes 44 drop
 PASS: IPv4 options counter increased (0 -> 1)
 ```
 
-The VM and packet tests were run on **ARM64 Talos v1.13.3**. The AMD64 image builds in CI; an AMD64 Talos VM has not yet been exercised.
+Both VM and packet tests ran on **Talos v1.13.3**: ARM64 on an Apple Silicon laptop and AMD64 on Proxmox. Neither lab bootstrapped Kubernetes; they verify the pre-Kubernetes service and host packet path.
 
 ## Deploy
 
